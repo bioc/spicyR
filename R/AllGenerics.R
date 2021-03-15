@@ -100,8 +100,8 @@ setMethod("topPairs", "SpicyResults", function(x,
 #' @usage cellType(x, imageID = NULL)
 #' @usage cellType(x, imageID = NULL) <- value
 #' @usage filterCells(x, select)
-#' @usage region(x, imageID = NULL, annot = FALSE)
-#' @usage region(x, imageID = NULL) <- value
+#' @usage cellAnnotation(x, variable, imageID = NULL)
+#' @usage cellAnnotation(x, variable, imageID = NULL) <- value
 
 #'
 #' @param x A `SegmentedCells` object.
@@ -110,7 +110,7 @@ setMethod("topPairs", "SpicyResults", function(x,
 #' @param expand Used to expand the phenotype information from per image to per cell.
 #' @param value The relevant information used to replace.
 #' @param select A logical vector of the cells to be kept.
-#' @param annot Add cell annotation when selecting region information.
+#' @param variable A variable to add or retrieve from cellSummary.
 #'
 #' @section Descriptions:
 #' \describe{
@@ -177,6 +177,8 @@ setMethod("topPairs", "SpicyResults", function(x,
 #' imageID,SegmentedCells-method
 #' cellType,SegmentedCells-method
 #' cellType<-,SegmentedCells-method
+#' cellAnnotation,SegmentedCells-method
+#' cellAnnotation<-,SegmentedCells-method
 #' imageCellID,SegmentedCells-method
 #' imageCellID<-,SegmentedCells-method
 #' cellID,SegmentedCells-method
@@ -193,15 +195,14 @@ setMethod("topPairs", "SpicyResults", function(x,
 #' imageID
 #' cellType
 #' cellType<-
+#' cellAnnotation
+#' cellAnnotation<-
 #' imageCellID
 #' imageCellID<-
 #' cellID
 #' cellID<-
 #' filterCells
-#' region,SegmentedCells-method
-#' region<-,SegmentedCells-method
-#' region
-#' region<-
+
 
 
 ### Get cellSummary information for each cell.
@@ -240,15 +241,21 @@ setMethod("cellSummary", "SegmentedCells", function(x, imageID = NULL, bind = TR
 setGeneric("cellSummary<-", function(x, imageID = NULL, value)
     standardGeneric("cellSummary<-"))
 setReplaceMethod("cellSummary", "SegmentedCells", function(x, imageID = NULL, value) {
+
     if (is.null(imageID))
         imageID <- rownames(x)
     if (nrow(value) == length(imageID)) {
+        if(any(!colnames(x[1,1][[1]])%in%colnames(value[[1]]))){
+            stop("There are colnames of value that aren't in cellSummary")}
         x <- .putData(x, "cellSummary", value, imageID)
         return(x)
     }
     
     if (nrow(value) == length(imageID(x, imageID))) {
-        value <- value[, c("cellID", "imageCellID", "x", "y", "cellType")]
+        colNames <- colnames(x[1,1][[1]])
+        if(any(!colNames%in%colnames(value))){
+            stop("There are colnames of value that aren't in cellSummary")}
+        value <- value[, colNames]
         by <-
             rep(imageID, unlist(lapply(x[imageID, "cellSummary"], nrow)))
         by <- factor(by, levels = unique(by))
@@ -452,6 +459,47 @@ setReplaceMethod("cellType", "SegmentedCells", function(x, imageID = NULL, value
 
 
 
+### Get cell type information
+
+#' @export
+setGeneric("cellAnnotation", function(x, variable, imageID = NULL)
+    standardGeneric("cellAnnotation"))
+setMethod("cellAnnotation", "SegmentedCells", function(x, variable, imageID = NULL) {
+    if (!is.null(imageID)) {
+        x <- x[imageID,]
+    }
+    cS <- cellSummary(x, bind = TRUE)
+    if(!variable%in%colnames(cS))stop("variable not in cellSummary")
+    cS[,variable]
+})
+
+#' @export
+setGeneric("cellAnnotation<-", function(x, variable, imageID = NULL, value)
+    standardGeneric("cellAnnotation<-"))
+setReplaceMethod("cellAnnotation", "SegmentedCells", function(x, variable, imageID = NULL, value) {
+    if (is.null(imageID))
+        imageID <- rownames(x)
+    loc <- cellSummary(x, bind = TRUE)
+    if(length(variable)!=1)stop("Sorry, I can only add one variable at a time currently")
+    if(!variable%in%colnames(loc)){
+        message(c("Creating variable ", variable))
+        loc[,variable] = NA
+    }
+    
+    
+    if (sum(loc$imageID%in%imageID) != length(value)) {
+        stop("You are trying to put too much or too little into ", variable)
+    }
+    loc[loc$imageID%in%imageID, variable] <- value
+    by <- factor(loc$imageID, rownames(x))
+    loc <- loc[, colnames(loc)!="imageID"]
+    loc <- S4Vectors::split(loc, by)
+    x <- .putData(x, "cellSummary", loc, imageID)
+    return(x)
+})
+
+
+
 
 
 ### Get and add image phenotype data to the object
@@ -504,63 +552,25 @@ setReplaceMethod("imagePheno", "SegmentedCells", function(x, imageID = NULL, val
 setGeneric("filterCells", function(x, select)
     standardGeneric("filterCells"))
 setMethod("filterCells", "SegmentedCells", function(x, select) {
-    df <- as.data.frame(x)
+    imageID <- imageID(x)
+    df <- cellSummary(x, bind = TRUE)
     if (length(select) != nrow(df))
         stop("length of select must equal nrow of SegmentedCells")
-    SegmentedCells(df[select, ])
-})
+    loc <- S4Vectors::split(df[select,], imageID[select])
+    x <- .putData(x, "cellSummary", loc, imageID)
 
-
-################################################################################
-#
-# Generics for lisa
-#
-################################################################################
-
-
-
-### Get regions information
-
-#' @export
-#' @importFrom BiocGenerics do.call rbind
-setGeneric("region", function(x, imageID = NULL, annot = FALSE)
-    standardGeneric("region"))
-setMethod("region", "SegmentedCells", function(x, imageID = NULL, annot = FALSE) {
-    if (!is.null(imageID)) {
-        x <- x[imageID,]
+    df <- cellMarks(x, bind = TRUE)
+    if(length(select) == nrow(df)){
+    loc <- S4Vectors::split(df[select,], imageID[select])
+    x <- .putData(x, "cellMarks", loc, imageID)
     }
-    if (is.null(x$region))
-        stop("There is no region information in your SegmentedCells yet")
-    if (annot)
-        return(data.frame(cellSummary(x), region = BiocGenerics::do.call("rbind", x$region)))
     
-    BiocGenerics::do.call("rbind", x$region)
-})
-
-
-
-
-#' @export
-#' @importFrom S4Vectors DataFrame split
-setGeneric("region<-", function(x, imageID = NULL, value)
-    standardGeneric("region<-"))
-setReplaceMethod("region", "SegmentedCells", function(x, imageID = NULL, value) {
-    if (is.null(imageID))
-        imageID <- rownames(x)
-    if (length(value) == length(imageID(x, imageID))) {
-        if (is.null(x$region)) {
-            x <- DataFrame(x)
-            by <- rep(rownames(x), unlist(lapply(x$cellSummary, nrow)))
-            by <- factor(by, levels = unique(by))
-            x$region <-
-                S4Vectors::split(DataFrame(region = value), by)
-            x <- new("SegmentedCells", x)
-        }
-        if (!is.null(x$region))
-            by <- rep(rownames(x), unlist(lapply(x$cellSummary, nrow)))
-        by <- factor(by, levels = unique(by))
-        value <- S4Vectors::split(DataFrame(region = value), by)
-        x <- .putData(x, "region", value, imageID)
+    df <- cellMorph(x, bind = TRUE)
+    if(length(select) == nrow(df)){
+    loc <- S4Vectors::split(df[select,], imageID[select])
+    x <- .putData(x, "cellMorph", loc, imageID)
     }
+    
     x
 })
+

@@ -20,6 +20,13 @@ spicy(
   nsim = NULL,
   verbose = TRUE,
   weights = TRUE,
+  window = "convex",
+  window.length = NULL,
+  BPPARAM = BiocParallel::SerialParam(),
+  sigma = NULL,
+  Rs = NULL,
+  minLambda = 0.05,
+  fast = TRUE,
   ...
 )
 }
@@ -51,6 +58,22 @@ value of the L curve at dist.}
 
 \item{weights}{logical indicating whether to include weights based on cell counts.}
 
+\item{window}{Should the window around the regions be 'square', 'convex' or 'concave'.}
+
+\item{window.length}{A tuning parameter for controlling the level of concavity 
+when estimating concave windows.}
+
+\item{BPPARAM}{A BiocParallelParam object.}
+
+\item{sigma}{A numeric variable used for scaling when fitting inhomogeneous L-curves.}
+
+\item{Rs}{A vector of the radii that the measures of association should be calculated.}
+
+\item{minLambda}{Minimum value for density for scaling when fitting inhomogeneous L-curves.}
+
+\item{fast}{A logical describing whether to use a fast approximation of the 
+inhomogeneous L-curves.}
+
 \item{...}{Other options to pass to bootstrap.}
 }
 \value{
@@ -60,20 +83,20 @@ Data frame of p-values.
 Performs spatial tests on spatial cytometry data.
 }
 \examples{
-data("diabetesDataSub")
+data("diabetesData")
 
 # Test with random effect for patient on only one pairwise combination of cell types.
-spicy(diabetesDataSub, condition = "condition", subject = "subject", 
+spicy(diabetesData, condition = "stage", subject = "case", 
       from = "Tc", to = "Th")
 
 # Test all pairwise combination of cell types without random effect of patient.
-#spicyTest <- spicy(diabetesDataSub, condition = "condition")
+#spicyTest <- spicy(diabetesData, condition = "stage", subject = "case")
 
 # Test all pairwise combination of cell types with random effect of patient.
-#spicy(diabetesDataSub, condition = "condition", subject = "subject")
+#spicy(diabetesData, condition = "condition", subject = "subject")
 
 # Test all pairwise combination of cell types with random effect of patient using 
 # a bootstrap to calculate significance.
-#spicy(diabetesDataSub, condition = "condition", subject = "subject", nsim = 10000)
+#spicy(diabetesData, condition = "stage", subject = "case", nsim = 10000)
 
 }

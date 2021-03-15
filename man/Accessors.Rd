@@ -13,6 +13,8 @@
 \alias{imageID,SegmentedCells-method}
 \alias{cellType,SegmentedCells-method}
 \alias{cellType<-,SegmentedCells-method}
+\alias{cellAnnotation,SegmentedCells-method}
+\alias{cellAnnotation<-,SegmentedCells-method}
 \alias{imageCellID,SegmentedCells-method}
 \alias{imageCellID<-,SegmentedCells-method}
 \alias{cellID,SegmentedCells-method}
@@ -29,15 +31,13 @@
 \alias{imageID}
 \alias{cellType}
 \alias{cellType<-}
+\alias{cellAnnotation}
+\alias{cellAnnotation<-}
 \alias{imageCellID}
 \alias{imageCellID<-}
 \alias{cellID}
 \alias{cellID<-}
 \alias{filterCells}
-\alias{region,SegmentedCells-method}
-\alias{region<-,SegmentedCells-method}
-\alias{region}
-\alias{region<-}
 \title{Accessors for SegmentedCells}
 \usage{
 cellSummary(x, imageID = NULL, bind = TRUE)
@@ -72,9 +72,9 @@ cellType(x, imageID = NULL) <- value
 
 filterCells(x, select)
 
-region(x, imageID = NULL, annot = FALSE)
+cellAnnotation(x, variable, imageID = NULL)
 
-region(x, imageID = NULL) <- value
+cellAnnotation(x, variable, imageID = NULL) <- value
 }
 \arguments{
 \item{x}{A `SegmentedCells` object.}
@@ -89,7 +89,7 @@ region(x, imageID = NULL) <- value
 
 \item{select}{A logical vector of the cells to be kept.}
 
-\item{annot}{Add cell annotation when selecting region information.}
+\item{variable}{A variable to add or retrieve from cellSummary.}
 }
 \value{
 DataFrame or a list of DataFrames
