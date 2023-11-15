@@ -72,7 +72,6 @@
 #' @importFrom BiocParallel SerialParam
 #' @importFrom scam scam
 #' @importFrom rlang .data
-#' @importFrom tibble rownames_to_column
 spicy <- function(cells,
                   condition = NULL,
                   subject = NULL,
@@ -136,8 +135,14 @@ spicy <- function(cells,
   }
 
   nCells <- table(imageID(cells), cellType(cells))
-
-
+  
+  conditionVector <- as.data.frame(imagePheno(cells))[condition][,1]
+  
+  if(!is.factor(conditionVector)) {
+    conditionVector <- as.factor(conditionVector)
+    warning(paste0("Coercing condition into factor. Using ", condition, " = ", levels(conditionVector)[1], " as base comparison group. If this is not the desired base group, please convert cells$", condition ," into a factor and change the order of levels(cells$", condition,") so that the base group is at index 1."))
+  }
+  
   ## Find pairwise associations
 
   if (is.null(alternateResult)) {
@@ -277,24 +282,17 @@ spicy <- function(cells,
 
     df <- cleanMEM(mixed.lmer, BPPARAM = BPPARAM)
   }
-
-  df$condition <- condition  # TODO: Add an index 
+  
+  df$condition <- conditionVector
 
   df$pairwiseAssoc <- pairwiseAssoc
   df$comparisons <- comparisons
 
   df$weights <- weightFunction
   df$nCells <- nCells
-
-  if (!is.null(alternateResult)) {
-    df$alternateResult <- TRUE
-    df$dataframe <- dplyr::inner_join(alternateResult |> tibble::rownames_to_column("imageID"),
-                               as.data.frame(imagePheno(cells)), by = "imageID")
-  } else {
-    df$alternateResult <- FALSE
-    df$dataframe <- dplyr::inner_join(pairwiseAssocDF |> tibble::rownames_to_column("imageID"),
-                               as.data.frame(imagePheno(cells)), by = "imageID")
-  }
+  
+  df$imageIDs <- as.data.frame(imagePheno(cells))["imageID"][,1]
+  df$alternateResult <- ifelse(is.null(alternateResult), FALSE, TRUE)
 
   df <- methods::new("SpicyResults", df)
   df
