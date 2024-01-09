@@ -72,6 +72,7 @@
 #' @importFrom BiocParallel SerialParam
 #' @importFrom scam scam
 #' @importFrom rlang .data
+#' @importFrom tibble column_to_rownames
 spicy <- function(cells,
                   condition = NULL,
                   subject = NULL,
@@ -160,8 +161,6 @@ spicy <- function(cells,
     )
     pairwiseAssoc <- as.data.frame(pairwiseAssoc)
     pairwiseAssoc <- pairwiseAssoc[labels]
-    
-    pairwiseAssocDF <- pairwiseAssoc
   }
 
 
@@ -284,6 +283,10 @@ spicy <- function(cells,
   }
   
   df$condition <- conditionVector
+  
+  if(!is.null(subject)) {
+    df$subject <- as.data.frame(imagePheno(cells))[subject][,1]    
+  }
 
   df$pairwiseAssoc <- pairwiseAssoc
   df$comparisons <- comparisons
@@ -293,7 +296,7 @@ spicy <- function(cells,
   
   df$imageIDs <- as.data.frame(imagePheno(cells))["imageID"][,1]
   df$alternateResult <- ifelse(is.null(alternateResult), FALSE, TRUE)
-
+  
   df <- methods::new("SpicyResults", df)
   df
 }
@@ -888,8 +891,12 @@ getWeightFunction <- function(
 
 
   resSq <- apply(pairwiseAssoc, 2, function(x) {
-    if (stats::sd(x, na.rm = TRUE) > 0) {
-      return((x - mean(x, na.rm = TRUE))^2)
+    if (sum(!is.na(x)) > 1) {
+      if (stats::sd(x, na.rm = TRUE) > 0) {
+        return((x - mean(x, na.rm = TRUE))^2)
+      } else {
+        return(rep(NA, length(x)))
+      }
     } else {
       return(rep(NA, length(x)))
     }
@@ -1082,3 +1089,40 @@ colTest <- function(
   test <- test[order(test$pval), ]
   test
 }
+
+#' Produces a dataframe showing L-function metric for each imageID entry.
+#'
+#' @param results 
+#'  Spicy test result obtained from spicy.
+#' @param pairName
+#'  A string specifying the pairwise interaction of interest. If NULL, all
+#'  pairwise interactions are shown.
+#'
+#' @return A data.frame containing the colData related to the results.
+#' @export
+#'
+#' @examples
+#'
+#' data(spicyTest)
+#' df <- bind(spicyTest)
+#'
+#' @export
+bind <- function(results,
+                 pairName = NULL) {
+
+  df <- data.frame(imageID = results$imageID,
+                   condition = results$condition)
+  
+  if (!is.null(results$subject)) {
+    df <- cbind(df, subject = results$subject)
+  }
+  
+  if (is.null(pairName)) {
+    df <- cbind(df, do.call(cbind, results$pairwiseAssoc))
+  } else {
+    df <- cbind(df, results$pairwiseAssoc[[pairName]])
+  }
+  
+  return(df)
+}
+
