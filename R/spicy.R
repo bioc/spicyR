@@ -146,6 +146,16 @@ spicy <- function(cells,
       )
     )
   }
+  
+  ## Check whether the subject parameter has a one-to-one mapping with image
+  if (!is.null(subject)) {
+    if (nrow(as.data.frame(unique(cells[, subject]))) == nrow(as.data.frame(unique(cells[, imageIDCol])))) {
+      subject <- NULL
+      warning("Your specified subject parameter has a one-to-one mapping with imageID. Converting to a linear model instead of mixed model.")
+    }  
+  }
+  
+  
 
   ## Find pairwise associations
 
@@ -437,7 +447,7 @@ getPairwise <- function(
     spatialCoordCols = c("x", "y")) {
   if (is(cells, "SummarizedExperiment")) {
     cells <- .format_data(
-      cells, imageIDCol, cellTypeCol, spatialCoordCols
+      cells, imageIDCol, cellTypeCol, spatialCoordCols, FALSE
     )
   }
 

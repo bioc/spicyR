@@ -27,7 +27,7 @@ isKonditional <- function(konditionalResult) {
 #' @importFrom cli cli_abort cli_inform
 #' @noRd
 .format_data <- function(
-    cells, imageIDCol, cellTypeCol, spatialCoordCols, verbose) {
+    cells, imageIDCol, cellTypeCol, spatialCoordCols, verbose = FALSE) {
     if (is(cells, "data.frame")) {
         # pass
     } else if (is(cells, "SpatialExperiment")) {
@@ -118,7 +118,7 @@ getCellSummary <- function(
             if (!is.null(!!imageID)) imageID == !!imageID else TRUE
         ) %>%
         dplyr::select(imageID, cellID, imageCellID, x, y, cellType) %>%
-        dplyr::mutate(imageID = as.factor(imageID)) %>%
+        dplyr::mutate(imageID = factor(imageID, levels = unique(imageID))) %>%
         S4Vectors::DataFrame() %>%
         {
             if (bind) . else S4Vectors::split(., .$imageID)
@@ -146,16 +146,17 @@ getImagePheno <- function(x,
                           imageID = NULL,
                           bind = TRUE,
                           expand = FALSE) {
-    x <- x %>%
-        dplyr::filter(
-            if (!is.null(!!imageID)) imageID == !!imageID else TRUE
-        ) %>%
-        dplyr::select(-cellID, -imageCellID, -x, -y, -cellType) %>%
-        dplyr::mutate(imageID = as.factor(imageID)) %>%
-        {
-            if (expand) . else dplyr::distinct(.)
-        } %>%
-        S4Vectors::DataFrame()
-    if (expand) rownames(x) <- x$imageID
+    x <- x[!duplicated(x$imageID),]
+    # x <- x %>%
+    #     dplyr::filter(
+    #         if (!is.null(!!imageID)) imageID == !!imageID else TRUE
+    #     ) %>%
+    #     dplyr::select(-cellID, -imageCellID, -x, -y, -cellType) %>%
+    #     dplyr::mutate(imageID = as.factor(imageID)) %>%
+    #     {
+    #         if (expand) . else dplyr::distinct(.)
+    #     } %>%
+    #     S4Vectors::DataFrame()
+    # if (expand) rownames(x) <- x$imageID
     x
 }
