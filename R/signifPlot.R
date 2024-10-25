@@ -204,7 +204,7 @@ draw_key_half_circle = function(data, params, shape) {
 
 
 
-
+#' @import ggthemes
 bubblePlot <- function(test,
                        fdr,
                        breaks,
@@ -384,10 +384,10 @@ bubblePlot <- function(test,
   if(isTRUE(test$isKontextual)) {
     if(is.null(contextColours)) {
       # Defining colour palette for Context
-      palette = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10`$value
+      palette = ggthemes::ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10`$value
       
       if (length(unique(df$parent)) > 10) {
-        palette = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`$value
+        palette = ggthemes::ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`$value
       }
       
       contextColours = palette[1:length(unique(df$parent))]
@@ -465,10 +465,10 @@ survBubble = function(result,
     
     if(is.null(contextColours)) {
       # Defining colour palette for Context
-      palette = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10`$value
+      palette = ggthemes::ggthemes_data$tableau$`color-palettes`$regular$`Tableau 10`$value
       
       if (length(unique(plotData$parent)) > 10) {
-        palette = ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`$value
+        palette = ggthemes::ggthemes_data$tableau$`color-palettes`$regular$`Tableau 20`$value
       }
       
       contextColours = palette[1:length(unique(plotData$parent))]
