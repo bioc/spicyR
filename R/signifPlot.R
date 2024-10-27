@@ -34,8 +34,8 @@
 #' @importFrom ggforce geom_arc_bar geom_circle
 #' @importFrom grDevices colors
 #' @importFrom stats setNames
-#' @import ggthemes
-#' @importFrom ggh4x strip_themed facet_grid2
+#' @import ggthemes 
+#' @import ggh4x 
 #' @importFrom grid grobTree polygonGrob gpar
 signifPlot <- function(results,
                        fdr = FALSE,
@@ -205,6 +205,7 @@ draw_key_half_circle = function(data, params, shape) {
 
 
 #' @import ggthemes
+#' @import ggh4x
 bubblePlot <- function(test,
                        fdr,
                        breaks,
@@ -395,7 +396,7 @@ bubblePlot <- function(test,
     }
     
     # Assigning contextColours to the strip
-    strip = strip_themed(background_x = elem_list_rect(fill = contextColours))
+    strip = ggh4x::strip_themed(background_x = ggh4x::elem_list_rect(fill = contextColours))
     
     plot = plot +
       ggh4x::facet_grid2( ~ parent,
@@ -434,7 +435,7 @@ bubblePlot <- function(test,
 #' 
 #' @return A ggplot object.
 #' 
-#' @importFrom ggh4x strip_themed facet_grid2
+#' @import ggh4x 
 #' @import ggplot2
 #' @import ggthemes
 survBubble = function(result,
@@ -476,7 +477,7 @@ survBubble = function(result,
     }
     
     # Assigning contextColours to the strip
-    strip = strip_themed(background_x = elem_list_rect(fill = contextColours)
+    strip = ggh4x::strip_themed(background_x = ggh4x::elem_list_rect(fill = contextColours)
     )
     
   } else {
