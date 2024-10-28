@@ -37,6 +37,7 @@
 #' @import ggthemes 
 #' @import ggh4x 
 #' @importFrom grid grobTree polygonGrob gpar
+#' @importFrom ggnewscale new_scale
 signifPlot <- function(results,
                        fdr = FALSE,
                        type = "bubble",
@@ -206,6 +207,7 @@ draw_key_half_circle = function(data, params, shape) {
 
 #' @import ggthemes
 #' @import ggh4x
+#' @importFrom ggnewscale new_scale
 bubblePlot <- function(test,
                        fdr,
                        breaks,
@@ -409,7 +411,7 @@ bubblePlot <- function(test,
         strip.background = element_rect(linewidth = NA),
         panel.spacing = unit(0.4, 'lines')
       ) +
-      new_scale("fill") +
+      ggnewscale::new_scale("fill") +
       geom_tile(aes(fill = parent), alpha = -1) +
       scale_fill_manual(values = contextColours, labels = contextLabels) +
       labs(fill = "Context") +
