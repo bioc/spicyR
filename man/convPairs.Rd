@@ -5,7 +5,7 @@
 \title{Converts colPairs object into an abundance matrix based on number of nearby
 interactions for every cell type.}
 \usage{
-convPairs(cells, colPair, cellType = "cellType", imageID = "imageID")
+convPairs(cells, colPair, imageID = "imageID", cellType = "cellType")
 }
 \arguments{
 \item{cells}{A SingleCellExperiment that contains objects in the colPairs slot.}
@@ -13,9 +13,9 @@ convPairs(cells, colPair, cellType = "cellType", imageID = "imageID")
 \item{colPair}{The name of the object in the colPairs slot for which the dataframe is
 constructed from.}
 
-\item{cellType}{The cell type if using SingleCellExperiment.}
-
 \item{imageID}{The image ID if using SingleCellExperiment.}
+
+\item{cellType}{The cell type if using SingleCellExperiment.}
 }
 \value{
 Matrix of abundances

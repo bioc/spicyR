@@ -18,19 +18,19 @@ spicy(
   imageID = "imageID",
   cellType = "cellType",
   spatialCoords = c("x", "y"),
-  alternateResult = NULL,
-  verbose = FALSE,
+  Rs = NULL,
+  sigma = NULL,
+  minLambda = 0.05,
   weights = TRUE,
   weightsByPair = FALSE,
   weightFactor = 1,
+  alternateResult = NULL,
   window = "convex",
   window.length = NULL,
-  nCores = 1,
-  sigma = NULL,
-  Rs = NULL,
-  minLambda = 0.05,
   edgeCorrect = TRUE,
   includeZeroCells = FALSE,
+  nCores = 1,
+  verbose = FALSE,
   ...
 )
 }
@@ -38,7 +38,7 @@ spicy(
 \item{cells}{A SummarizedExperiment or data frame that contains at least the  variables
 x and y, giving the location coordinates of each cell, and cellType.}
 
-\item{condition}{A character specifying which column which contains the condition or `Surv` objects}
+\item{condition}{A character specifying which column which contains the condition or `Surv` objects.}
 
 \item{subject}{Vector of subject IDs corresponding to each image if cells is
 a data frame.}
@@ -46,20 +46,21 @@ a data frame.}
 \item{covariates}{Vector of covariate names that should be included in the
 mixed effects model as fixed effects.}
 
-\item{from}{vector of cell types which you would like to compare to the to vector}
+\item{from}{vector of cell types which you would like to compare to the to vector.}
 
-\item{to}{vector of cell types which you would like to compare to the from vector}
+\item{to}{vector of cell types which you would like to compare to the from vector.}
 
-\item{imageID}{The image ID if using SingleCellExperiment.}
+\item{imageID}{The name of the imageID column if using a SingleCellExperiment or SpatialExperiment.}
 
-\item{cellType}{The cell type if using SingleCellExperiment.}
+\item{cellType}{The name of the cellType column if using a SingleCellExperiment or SpatialExperiment.}
 
-\item{spatialCoords}{The spatial coordinates if using a SingleCellExperiment.}
+\item{spatialCoords}{The names of the spatialCoords column if using a SingleCellExperiment.}
 
-\item{alternateResult}{An pairwise association statistic between each combination of celltypes in
-each image.}
+\item{Rs}{A vector of the radii that the measures of association should be calculated over.}
 
-\item{verbose}{logical indicating whether to output messages.}
+\item{sigma}{A numeric variable used for scaling when fitting inhomogenous L-curves.}
+
+\item{minLambda}{Minimum value density for scaling when fitting inhomogeneous L-curves.}
 
 \item{weights}{logical indicating whether to include weights based on cell counts.}
 
@@ -68,26 +69,22 @@ pair.}
 
 \item{weightFactor}{numeric that controls the convexity of the weight function.}
 
+\item{alternateResult}{A pairwise association statistic between each combination of celltypes in
+each image.}
+
 \item{window}{Should the window around the regions be 'square', 'convex' or 'concave'.}
 
-\item{window.length}{A tuning parameter for controlling the level of concavity when estimating
-concave windows.}
-
-\item{nCores}{number of cores to use for parallel processing.}
-
-\item{sigma}{A numeric variable used for scaling when fitting inhomogeneous L-curves.}
-
-\item{Rs}{A vector of radii that the measures of association should be calculated. If
-NULL, Rs = c(20, 50, 100) is specified by default.}
-
-\item{minLambda}{Minimum value for density for scaling when fitting inhomogeneous L-curves.}
+\item{window.length}{A tuning parameter for controlling the level of concavity when estimating concave windows.}
 
 \item{edgeCorrect}{A logical indicating whether to perform edge correction.}
 
-\item{includeZeroCells}{A logical indicating whether to include cells with zero counts in the
-pairwise association calculation.}
+\item{includeZeroCells}{A logical indicating whether to include cells with zero counts in the pairwise association calculation.}
 
-\item{...}{Other options.}
+\item{nCores}{Number of cores to use for parallel processing.}
+
+\item{verbose}{logical indicating whether to output messages.}
+
+\item{...}{Other options}
 }
 \value{
 Data frame of p-values.

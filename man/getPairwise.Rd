@@ -8,17 +8,17 @@ getPairwise(
   cells,
   from = NULL,
   to = NULL,
-  window = "convex",
-  window.length = NULL,
+  imageID = "imageID",
+  cellType = "cellType",
+  spatialCoords = c("x", "y"),
   Rs = c(20, 50, 100),
   sigma = NULL,
   minLambda = 0.05,
+  window = "convex",
+  window.length = NULL,
   edgeCorrect = TRUE,
   includeZeroCells = TRUE,
-  nCores = 1,
-  imageID = "imageID",
-  cellType = "cellType",
-  spatialCoords = c("x", "y")
+  nCores = 1
 )
 }
 \arguments{
@@ -30,36 +30,31 @@ cellType.}
 
 \item{to}{The 'to' cellType for generating the L curve.}
 
+\item{imageID}{The name of the imageID column if using a SingleCellExperiment or SpatialExperiment.}
+
+\item{cellType}{The name of the cellType column if using a SingleCellExperiment or SpatialExperiment.}
+
+\item{spatialCoords}{The names of the spatialCoords column if using a SingleCellExperiment.}
+
+\item{Rs}{A vector of the radii that the measures of association should be calculated over.}
+
+\item{sigma}{A numeric variable used for scaling when fitting inhomogenous L-curves.}
+
+\item{minLambda}{Minimum value density for scaling when fitting inhomogeneous L-curves.}
+
 \item{window}{Should the window around the regions be 'square', 'convex' or 'concave'.}
 
-\item{window.length}{A tuning parameter for controlling the level of concavity
-when estimating concave windows.}
-
-\item{Rs}{A vector of the radii that the measures of association should be
-calculated.}
-
-\item{sigma}{A numeric variable used for scaling when fitting inhomogeneous L-curves.}
-
-\item{minLambda}{Minimum value for density for scaling when fitting inhomogeneous
-L-curves.}
+\item{window.length}{A tuning parameter for controlling the level of concavity when estimating concave windows.}
 
 \item{edgeCorrect}{A logical indicating whether to perform edge correction.}
 
-\item{includeZeroCells}{A logical indicating whether to include cells with
-zero counts in the pairwise association calculation.}
+\item{includeZeroCells}{A logical indicating whether to include cells with zero counts in the pairwise association
+calculation.}
 
-\item{nCores}{number of cores to use for parallel processing.}
-
-\item{imageID}{The name of the imageID column if using a SingleCellExperiment or
-SpatialExperiment.}
-
-\item{cellType}{The name of the cellType column if using a SingleCellExperiment or
-SpatialExperiment.}
-
-\item{spatialCoords}{The names of the spatialCoords column if using a SingleCellExperiment.}
+\item{nCores}{Number of cores to use for parallel processing.}
 }
 \value{
-Statistic from pairwise L curve of a single image.
+Statistic from pairwise L-curve of a single image.
 }
 \description{
 Get statistic from pairwise L curve of a single image.
