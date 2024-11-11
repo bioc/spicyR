@@ -15,10 +15,10 @@ getPairwise(
   minLambda = 0.05,
   edgeCorrect = TRUE,
   includeZeroCells = TRUE,
-  BPPARAM = BiocParallel::SerialParam(),
-  imageIDCol = "imageID",
-  cellTypeCol = "cellType",
-  spatialCoordCols = c("x", "y")
+  nCores = 1,
+  imageID = "imageID",
+  cellType = "cellType",
+  spatialCoords = c("x", "y")
 )
 }
 \arguments{
@@ -48,15 +48,15 @@ L-curves.}
 \item{includeZeroCells}{A logical indicating whether to include cells with
 zero counts in the pairwise association calculation.}
 
-\item{BPPARAM}{A BiocParallelParam object.}
+\item{nCores}{number of cores to use for parallel processing.}
 
-\item{imageIDCol}{The name of the imageID column if using a SingleCellExperiment or
+\item{imageID}{The name of the imageID column if using a SingleCellExperiment or
 SpatialExperiment.}
 
-\item{cellTypeCol}{The name of the cellType column if using a SingleCellExperiment or
+\item{cellType}{The name of the cellType column if using a SingleCellExperiment or
 SpatialExperiment.}
 
-\item{spatialCoordCols}{The names of the spatialCoords column if using a SingleCellExperiment.}
+\item{spatialCoords}{The names of the spatialCoords column if using a SingleCellExperiment.}
 }
 \value{
 Statistic from pairwise L curve of a single image.

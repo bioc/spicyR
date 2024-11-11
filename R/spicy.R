@@ -13,9 +13,9 @@
 #'   vector of cell types which you would like to compare to the to vector
 #' @param to
 #'   vector of cell types which you would like to compare to the from vector
-#' @param imageIDCol The image ID if using SingleCellExperiment.
-#' @param cellTypeCol The cell type if using SingleCellExperiment.
-#' @param spatialCoordCols
+#' @param imageID The image ID if using SingleCellExperiment.
+#' @param cellType The cell type if using SingleCellExperiment.
+#' @param spatialCoords
 #'   The spatial coordinates if using a SingleCellExperiment.
 #' @param alternateResult
 #'   An pairwise association statistic between each combination of celltypes in
@@ -33,7 +33,7 @@
 #' @param window.length
 #'   A tuning parameter for controlling the level of concavity when estimating
 #'   concave windows.
-#' @param BPPARAM A BiocParallelParam object.
+#' @param nCores number of cores to use for parallel processing.
 #' @param sigma
 #'   A numeric variable used for scaling when fitting inhomogeneous L-curves.
 #' @param minLambda
@@ -74,19 +74,19 @@
 #' @aliases
 #' spicy
 #' spicy,spicy-method
-#' @importFrom BiocParallel SerialParam
 #' @importFrom scam scam
 #' @importFrom rlang .data
 #' @importFrom tibble column_to_rownames
+#' @importFrom BiocParallel MulticoreParam
 spicy <- function(cells,
                   condition,
                   subject = NULL,
                   covariates = NULL,
                   from = NULL,
                   to = NULL,
-                  imageIDCol = "imageID",
-                  cellTypeCol = "cellType",
-                  spatialCoordCols = c("x", "y"),
+                  imageID = "imageID",
+                  cellType = "cellType",
+                  spatialCoords = c("x", "y"),
                   alternateResult = NULL,
                   verbose = FALSE,
                   weights = TRUE,
@@ -94,16 +94,18 @@ spicy <- function(cells,
                   weightFactor = 1,
                   window = "convex",
                   window.length = NULL,
-                  BPPARAM = BiocParallel::SerialParam(),
+                  nCores = 1,
                   sigma = NULL,
                   Rs = NULL,
                   minLambda = 0.05,
                   edgeCorrect = TRUE,
                   includeZeroCells = FALSE,
                   ...) {
+  BPPARAM <- BiocParallel::MulticoreParam(workers = nCores)
+  
   if (is(cells, "SummarizedExperiment") || is(cells, "data.frame")) {
     cells <- .format_data(
-      cells, imageIDCol, cellTypeCol, spatialCoordCols, verbose
+      cells, imageID, cellType, spatialCoords, verbose
     )
   }
 
@@ -152,7 +154,7 @@ spicy <- function(cells,
 
   ## Check whether the subject parameter has a one-to-one mapping with image
   if (!is.null(subject)) {
-    if (nrow(as.data.frame(unique(cells[, subject]))) == nrow(as.data.frame(unique(cells[, imageIDCol])))) {
+    if (nrow(as.data.frame(unique(cells[, subject]))) == nrow(as.data.frame(unique(cells[, imageID])))) {
       subject <- NULL
       
       if(inherits(conditionVector, "Surv")) {
@@ -185,7 +187,7 @@ spicy <- function(cells,
       to = to,
       edgeCorrect = edgeCorrect,
       includeZeroCells = includeZeroCells,
-      BPPARAM = BPPARAM
+      nCores = nCores
     )
     pairwiseAssoc <- as.data.frame(pairwiseAssoc)
     pairwiseAssoc <- pairwiseAssoc[labels]
@@ -435,14 +437,14 @@ cleanMEM <- function(mixed.lmer, BPPARAM) {
 #' @param edgeCorrect A logical indicating whether to perform edge correction.
 #' @param includeZeroCells A logical indicating whether to include cells with
 #' zero counts in the pairwise association calculation.
-#' @param BPPARAM A BiocParallelParam object.
-#' @param imageIDCol
+#' @param nCores number of cores to use for parallel processing.
+#' @param imageID
 #'     The name of the imageID column if using a SingleCellExperiment or
 #'     SpatialExperiment.
-#' @param cellTypeCol
+#' @param cellType
 #'     The name of the cellType column if using a SingleCellExperiment or
 #'     SpatialExperiment.
-#' @param spatialCoordCols
+#' @param spatialCoords
 #'     The names of the spatialCoords column if using a SingleCellExperiment.
 #' @return Statistic from pairwise L curve of a single image.
 #'
@@ -456,6 +458,7 @@ cleanMEM <- function(mixed.lmer, BPPARAM) {
 #' pairAssoc <- getPairwise(selected_cells)
 #' @export
 #' @importFrom BiocParallel bplapply
+#' @importFrom BiocParallel MulticoreParam
 getPairwise <- function(
     cells,
     from = NULL,
@@ -467,13 +470,15 @@ getPairwise <- function(
     minLambda = 0.05,
     edgeCorrect = TRUE,
     includeZeroCells = TRUE,
-    BPPARAM = BiocParallel::SerialParam(),
-    imageIDCol = "imageID",
-    cellTypeCol = "cellType",
-    spatialCoordCols = c("x", "y")) {
+    nCores = 1,
+    imageID = "imageID",
+    cellType = "cellType",
+    spatialCoords = c("x", "y")) {
+  BPPARAM <- BiocParallel::MulticoreParam(workers = nCores)
+  
   if (is(cells, "SummarizedExperiment")) {
     cells <- .format_data(
-      cells, imageIDCol, cellTypeCol, spatialCoordCols, FALSE
+      cells, imageID, cellType, spatialCoords, FALSE
     )
   }
 

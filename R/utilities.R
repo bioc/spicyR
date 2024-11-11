@@ -18,7 +18,7 @@ isKontextual <- function(kontextualResult) {
     if (is(cells, "data.frame")) {
         # pass
     } else if (is(cells, "SpatialExperiment")) {
-        spatialCoordCols <- names(spatialCoords(cells))
+        spatialCoords <- names(spatialCoords(cells))
         cells <- cells %>%
             colData() %>%
             data.frame() %>%

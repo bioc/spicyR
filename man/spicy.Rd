@@ -15,9 +15,9 @@ spicy(
   covariates = NULL,
   from = NULL,
   to = NULL,
-  imageIDCol = "imageID",
-  cellTypeCol = "cellType",
-  spatialCoordCols = c("x", "y"),
+  imageID = "imageID",
+  cellType = "cellType",
+  spatialCoords = c("x", "y"),
   alternateResult = NULL,
   verbose = FALSE,
   weights = TRUE,
@@ -25,7 +25,7 @@ spicy(
   weightFactor = 1,
   window = "convex",
   window.length = NULL,
-  BPPARAM = BiocParallel::SerialParam(),
+  nCores = 1,
   sigma = NULL,
   Rs = NULL,
   minLambda = 0.05,
@@ -50,11 +50,11 @@ mixed effects model as fixed effects.}
 
 \item{to}{vector of cell types which you would like to compare to the from vector}
 
-\item{imageIDCol}{The image ID if using SingleCellExperiment.}
+\item{imageID}{The image ID if using SingleCellExperiment.}
 
-\item{cellTypeCol}{The cell type if using SingleCellExperiment.}
+\item{cellType}{The cell type if using SingleCellExperiment.}
 
-\item{spatialCoordCols}{The spatial coordinates if using a SingleCellExperiment.}
+\item{spatialCoords}{The spatial coordinates if using a SingleCellExperiment.}
 
 \item{alternateResult}{An pairwise association statistic between each combination of celltypes in
 each image.}
@@ -73,7 +73,7 @@ pair.}
 \item{window.length}{A tuning parameter for controlling the level of concavity when estimating
 concave windows.}
 
-\item{BPPARAM}{A BiocParallelParam object.}
+\item{nCores}{number of cores to use for parallel processing.}
 
 \item{sigma}{A numeric variable used for scaling when fitting inhomogeneous L-curves.}
 
