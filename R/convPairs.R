@@ -46,8 +46,8 @@
 #' @importFrom tibble rownames_to_column column_to_rownames
 convPairs <- function(cells,
                       colPair,
-                      cellType = "cellType",
-                      imageID = "imageID") {
+                      imageID = "imageID",
+                      cellType = "cellType") {
   all_pairs <- SingleCellExperiment::colPair(cells, colPair) |>
     dplyr::as_tibble() |>
     # join the `from` cellType
