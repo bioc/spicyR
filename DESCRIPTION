@@ -49,7 +49,9 @@ Imports:
     ggthemes,
     ggh4x,
     coxme,
-    ggnewscale
+    ggnewscale,
+    lifecycle,
+    simpleSeg
 Suggests: 
     SpatialDatasets,
     BiocStyle,

@@ -7,25 +7,25 @@
 #'   a data frame.
 #' @param covariates Vector of covariate names that should be included in the
 #'   mixed effects model as fixed effects.
-#' @param from vector of cell types which you would like to compare to the to vector.
-#' @param to vector of cell types which you would like to compare to the from vector.
 #' @param imageID The name of the imageID column if using a SingleCellExperiment or SpatialExperiment.
 #' @param cellType The name of the cellType column if using a SingleCellExperiment or SpatialExperiment.
 #' @param spatialCoords The names of the spatialCoords column if using a SingleCellExperiment.
 #' @param Rs A vector of the radii that the measures of association should be calculated over.
 #' @param sigma A numeric variable used for scaling when fitting inhomogenous L-curves.
+#' @param from vector of cell types which you would like to compare to the to vector.
+#' @param to vector of cell types which you would like to compare to the from vector.
+#' @param alternateResult A pairwise association statistic between each combination of celltypes in
+#'   each image.
+#' @param cores Number of cores to use for parallel processing or a BiocParallel MulticoreParam or SerialParam object.
 #' @param minLambda Minimum value density for scaling when fitting inhomogeneous L-curves.
 #' @param weights logical indicating whether to include weights based on cell counts.
 #' @param weightsByPair logical indicating whether weights should be calculated for each cell type
 #'   pair.
 #' @param weightFactor numeric that controls the convexity of the weight function.
-#' @param alternateResult A pairwise association statistic between each combination of celltypes in
-#'   each image.
 #' @param window 	Should the window around the regions be 'square', 'convex' or 'concave'.
 #' @param window.length A tuning parameter for controlling the level of concavity when estimating concave windows.
 #' @param edgeCorrect A logical indicating whether to perform edge correction.
 #' @param includeZeroCells 	A logical indicating whether to include cells with zero counts in the pairwise association calculation.
-#' @param nCores Number of cores to use for parallel processing.
 #' @param verbose logical indicating whether to output messages.
 #' @param ... Other options
 #' @return Data frame of p-values.
@@ -58,31 +58,39 @@
 #' @importFrom scam scam
 #' @importFrom rlang .data
 #' @importFrom tibble column_to_rownames
-#' @importFrom BiocParallel MulticoreParam
+#' @importFrom lifecycle deprecate_soft
 spicy <- function(cells,
                   condition,
                   subject = NULL,
                   covariates = NULL,
-                  from = NULL,
-                  to = NULL,
                   imageID = "imageID",
                   cellType = "cellType",
                   spatialCoords = c("x", "y"),
                   Rs = NULL,
                   sigma = NULL,
+                  from = NULL,
+                  to = NULL,
+                  alternateResult = NULL,
+                  cores = 1,
                   minLambda = 0.05,
                   weights = TRUE,
                   weightsByPair = FALSE,
                   weightFactor = 1,
-                  alternateResult = NULL,
                   window = "convex",
                   window.length = NULL,
                   edgeCorrect = TRUE,
                   includeZeroCells = FALSE,
-                  nCores = 1,
+                  BPPARAM = BiocParallel::SerialParam(),
+                  imageIDCol = imageID,
+                  cellTypeCol = cellType,
+                  spatialCoordCols = spatialCoords,
+                  nCores = cores,
                   verbose = FALSE,
                   ...) {
-  BPPARAM <- BiocParallel::MulticoreParam(workers = nCores)
+  
+  user_args = as.list(match.call())[-1]
+  user_vals = lapply(user_args, eval)
+  argumentChecks("spicy", user_vals)
   
   if (is(cells, "SummarizedExperiment") || is(cells, "data.frame")) {
     cells <- .format_data(
@@ -159,16 +167,16 @@ spicy <- function(cells,
 
   if (is.null(alternateResult)) {
     pairwiseAssoc <- getPairwise(cells,
-      Rs = Rs,
-      sigma = sigma,
-      window = window,
-      window.length = window.length,
-      minLambda = minLambda,
-      from = from,
-      to = to,
-      edgeCorrect = edgeCorrect,
-      includeZeroCells = includeZeroCells,
-      nCores = nCores
+        Rs = Rs,
+        sigma = sigma,
+        from = from,
+        to = to,
+        cores = cores,
+        minLambda = minLambda,
+        window = window,
+        window.length = window.length,
+        edgeCorrect = edgeCorrect,
+        includeZeroCells = includeZeroCells
     )
     pairwiseAssoc <- as.data.frame(pairwiseAssoc)
     pairwiseAssoc <- pairwiseAssoc[labels]
@@ -400,21 +408,21 @@ cleanMEM <- function(mixed.lmer, BPPARAM) {
 #' @param cells A SummarizedExperiment that contains at least the
 #'     variables x and y, giving the location coordinates of each cell, and
 #'     cellType.
-#' @param from The 'from' cellType for generating the L curve.
-#' @param to The 'to' cellType for generating the L curve.
 #' @param imageID
 #'     The name of the imageID column if using a SingleCellExperiment or SpatialExperiment.
 #' @param cellType The name of the cellType column if using a SingleCellExperiment or SpatialExperiment.
 #' @param spatialCoords The names of the spatialCoords column if using a SingleCellExperiment.
 #' @param Rs A vector of the radii that the measures of association should be calculated over.
 #' @param sigma A numeric variable used for scaling when fitting inhomogenous L-curves.
+#' @param from The 'from' cellType for generating the L curve.
+#' @param to The 'to' cellType for generating the L curve.
+#' @param cores Number of cores to use for parallel processing or a BiocParallel MulticoreParam or SerialParam object.
 #' @param minLambda Minimum value density for scaling when fitting inhomogeneous L-curves.
 #' @param window Should the window around the regions be 'square', 'convex' or 'concave'.
 #' @param window.length A tuning parameter for controlling the level of concavity when estimating concave windows.
 #' @param edgeCorrect A logical indicating whether to perform edge correction.
 #' @param includeZeroCells A logical indicating whether to include cells with zero counts in the pairwise association
 #' calculation.
-#' @param nCores Number of cores to use for parallel processing.
 #' @return Statistic from pairwise L-curve of a single image.
 #' @examples
 #' data("diabetesData")
@@ -428,21 +436,39 @@ cleanMEM <- function(mixed.lmer, BPPARAM) {
 #' @importFrom BiocParallel MulticoreParam
 getPairwise <- function(
     cells,
-    from = NULL,
-    to = NULL,
     imageID = "imageID",
     cellType = "cellType",
     spatialCoords = c("x", "y"),
-    Rs = c(20, 50, 100),
+    Rs = NULL,
     sigma = NULL,
+    from = NULL,
+    to = NULL,
+    cores = 1, 
     minLambda = 0.05,
     window = "convex",
     window.length = NULL,
     edgeCorrect = TRUE,
-    includeZeroCells = TRUE,
-    nCores = 1
+    includeZeroCells = FALSE,
+    BPPARAM = BiocParallel::SerialParam(),
+    imageIDCol = imageID,
+    cellTypeCol = cellType,
+    spatialCoordCols = spatialCoords,
+    nCores = cores
     ) {
-  BPPARAM <- BiocParallel::MulticoreParam(workers = nCores)
+  
+    user_args = as.list(match.call())[-1]
+      
+    tryCatch({
+      user_vals = lapply(user_args, eval)
+      argumentChecks("getPairwise", user_vals)
+    }, error = function(e) {
+    if (grepl("object 'cells' not found", e$message)) {
+        message("Skipping argument checks as `getPairwise()` is being called within `spicy()`")
+    } else {
+      stop(e)
+    }
+  })
+  
   
   if (is(cells, "SummarizedExperiment")) {
     cells <- .format_data(

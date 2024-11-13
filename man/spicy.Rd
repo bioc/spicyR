@@ -13,23 +13,28 @@ spicy(
   condition,
   subject = NULL,
   covariates = NULL,
-  from = NULL,
-  to = NULL,
   imageID = "imageID",
   cellType = "cellType",
   spatialCoords = c("x", "y"),
   Rs = NULL,
   sigma = NULL,
+  from = NULL,
+  to = NULL,
+  alternateResult = NULL,
+  cores = 1,
   minLambda = 0.05,
   weights = TRUE,
   weightsByPair = FALSE,
   weightFactor = 1,
-  alternateResult = NULL,
   window = "convex",
   window.length = NULL,
   edgeCorrect = TRUE,
   includeZeroCells = FALSE,
-  nCores = 1,
+  BPPARAM = BiocParallel::SerialParam(),
+  imageIDCol = imageID,
+  cellTypeCol = cellType,
+  spatialCoordCols = spatialCoords,
+  nCores = cores,
   verbose = FALSE,
   ...
 )
@@ -46,10 +51,6 @@ a data frame.}
 \item{covariates}{Vector of covariate names that should be included in the
 mixed effects model as fixed effects.}
 
-\item{from}{vector of cell types which you would like to compare to the to vector.}
-
-\item{to}{vector of cell types which you would like to compare to the from vector.}
-
 \item{imageID}{The name of the imageID column if using a SingleCellExperiment or SpatialExperiment.}
 
 \item{cellType}{The name of the cellType column if using a SingleCellExperiment or SpatialExperiment.}
@@ -60,6 +61,15 @@ mixed effects model as fixed effects.}
 
 \item{sigma}{A numeric variable used for scaling when fitting inhomogenous L-curves.}
 
+\item{from}{vector of cell types which you would like to compare to the to vector.}
+
+\item{to}{vector of cell types which you would like to compare to the from vector.}
+
+\item{alternateResult}{A pairwise association statistic between each combination of celltypes in
+each image.}
+
+\item{cores}{Number of cores to use for parallel processing or a BiocParallel MulticoreParam or SerialParam object.}
+
 \item{minLambda}{Minimum value density for scaling when fitting inhomogeneous L-curves.}
 
 \item{weights}{logical indicating whether to include weights based on cell counts.}
@@ -69,9 +79,6 @@ pair.}
 
 \item{weightFactor}{numeric that controls the convexity of the weight function.}
 
-\item{alternateResult}{A pairwise association statistic between each combination of celltypes in
-each image.}
-
 \item{window}{Should the window around the regions be 'square', 'convex' or 'concave'.}
 
 \item{window.length}{A tuning parameter for controlling the level of concavity when estimating concave windows.}
@@ -79,8 +86,6 @@ each image.}
 \item{edgeCorrect}{A logical indicating whether to perform edge correction.}
 
 \item{includeZeroCells}{A logical indicating whether to include cells with zero counts in the pairwise association calculation.}
-
-\item{nCores}{Number of cores to use for parallel processing.}
 
 \item{verbose}{logical indicating whether to output messages.}
 

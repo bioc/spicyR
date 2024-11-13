@@ -6,29 +6,30 @@
 \usage{
 getPairwise(
   cells,
-  from = NULL,
-  to = NULL,
   imageID = "imageID",
   cellType = "cellType",
   spatialCoords = c("x", "y"),
-  Rs = c(20, 50, 100),
+  Rs = NULL,
   sigma = NULL,
+  from = NULL,
+  to = NULL,
+  cores = 1,
   minLambda = 0.05,
   window = "convex",
   window.length = NULL,
   edgeCorrect = TRUE,
-  includeZeroCells = TRUE,
-  nCores = 1
+  includeZeroCells = FALSE,
+  BPPARAM = BiocParallel::SerialParam(),
+  imageIDCol = imageID,
+  cellTypeCol = cellType,
+  spatialCoordCols = spatialCoords,
+  nCores = cores
 )
 }
 \arguments{
 \item{cells}{A SummarizedExperiment that contains at least the
 variables x and y, giving the location coordinates of each cell, and
 cellType.}
-
-\item{from}{The 'from' cellType for generating the L curve.}
-
-\item{to}{The 'to' cellType for generating the L curve.}
 
 \item{imageID}{The name of the imageID column if using a SingleCellExperiment or SpatialExperiment.}
 
@@ -40,6 +41,12 @@ cellType.}
 
 \item{sigma}{A numeric variable used for scaling when fitting inhomogenous L-curves.}
 
+\item{from}{The 'from' cellType for generating the L curve.}
+
+\item{to}{The 'to' cellType for generating the L curve.}
+
+\item{cores}{Number of cores to use for parallel processing or a BiocParallel MulticoreParam or SerialParam object.}
+
 \item{minLambda}{Minimum value density for scaling when fitting inhomogeneous L-curves.}
 
 \item{window}{Should the window around the regions be 'square', 'convex' or 'concave'.}
@@ -50,8 +57,6 @@ cellType.}
 
 \item{includeZeroCells}{A logical indicating whether to include cells with zero counts in the pairwise association
 calculation.}
-
-\item{nCores}{Number of cores to use for parallel processing.}
 }
 \value{
 Statistic from pairwise L-curve of a single image.
